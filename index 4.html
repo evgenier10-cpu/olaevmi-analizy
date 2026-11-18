@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Квіз «Які аналізи здати»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: one narrow column on a mountain-sky backdrop; progress drawn as a hiking route with stops */
+:root{
+  color-scheme:light;
+  --sky1:#a8c6da; --sky2:#dce8ee; --mist:#eef3f1; --forest:#1d3328; --pine:#36553f; --moss:#7b9476;
+  --blue:#3f6f93; --ink:#15221b; --muted:#5b6b63; --line:#d6e0db; --card:rgba(255,255,255,.88); --soft:#e6efe9;
+  --serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --sans:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+body{min-height:100vh;background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 42%,var(--mist) 100%);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 60px}
+.mountains{position:fixed;left:0;right:0;bottom:0;height:38vh;z-index:0;pointer-events:none}
+.mountains svg{width:100%;height:100%;display:block}
+.wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;justify-content:space-between;align-items:baseline;gap:12px;color:var(--forest)}
+.brand b{font-family:var(--serif);font-size:22px;font-weight:600;font-style:italic}
+.brand span{font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.card{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:28px;padding:28px 22px;display:flex;flex-direction:column;gap:18px;box-shadow:0 24px 60px -40px rgba(20,40,30,.55)}
+h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;line-height:1.02;text-wrap:balance;color:var(--forest)}
+h1{font-size:clamp(40px,11vw,58px);letter-spacing:-.01em}
+h1 em,h2 em{font-style:italic;color:var(--blue);font-weight:500}
+h2{font-size:clamp(28px,7.4vw,36px)}
+h3{font-size:26px}
+p{margin:0}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--pine);font-weight:700}
+.lead{color:var(--muted);font-size:16px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fact{border-top:1px solid var(--line);padding-top:10px;font-size:12.5px;color:var(--muted);line-height:1.35}
+.fact b{display:block;font-family:var(--serif);font-size:26px;color:var(--forest);font-weight:600;line-height:1.1}
+.btn{appearance:none;border:0;border-radius:999px;background:var(--forest);color:#fff;font:700 16px/1 var(--sans);padding:18px 24px;cursor:pointer;text-align:center;text-decoration:none;display:block}
+.btn:hover{background:var(--pine)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--forest);border:1px solid var(--line)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.expert{font-size:13px;color:var(--muted);border-left:2px solid var(--moss);padding-left:12px}
+/* route progress */
+.route-wrap{display:flex;flex-direction:column;gap:8px}
+.route-label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.route{display:flex;align-items:center}
+.stop{flex:none;width:10px;height:10px;border-radius:50%;border:2px solid var(--moss);background:#fff}
+.stop.done{background:var(--pine);border-color:var(--pine)}
+.stop.now{width:16px;height:16px;background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 5px rgba(63,111,147,.18)}
+.leg{flex:1;border-top:2px dashed var(--moss);opacity:.55}
+.leg.done{border-top-style:solid;border-color:var(--pine);opacity:1}
+.q{font-size:clamp(26px,7vw,34px)}
+.hint{font-size:14px;color:var(--muted);margin-top:-8px}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:16px;padding:14px 16px;font:500 15px/1.4 var(--sans);cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--moss)}
+.opt .mark{flex:none;width:20px;height:20px;border:1.5px solid var(--moss);border-radius:50%;display:grid;place-items:center}
+.opt.multi .mark{border-radius:6px}
+.opt[aria-pressed="true"]{background:var(--soft);border-color:var(--pine)}
+.opt[aria-pressed="true"] .mark{background:var(--pine);border-color:var(--pine)}
+.opt[aria-pressed="true"] .mark::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.nav{display:flex;gap:10px}
+.nav .btn{flex:1}.nav .btn.ghost{flex:0 0 auto}
+/* result */
+.tests{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:t}
+.test{counter-increment:t;display:grid;grid-template-columns:38px minmax(0,1fr);gap:12px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+.test::before{content:counter(t);width:38px;height:38px;border-radius:50%;background:var(--soft);color:var(--forest);display:grid;place-items:center;font-family:var(--serif);font-size:20px;font-weight:600}
+.test.top::before{background:var(--blue);color:#fff}
+.test b{display:block;font-size:16px}
+.test p{font-size:14px;color:var(--muted);margin-top:2px}
+.tag{display:inline-block;margin-left:6px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--blue);background:#e3edf4;border-radius:999px;padding:2px 8px;vertical-align:2px}
+.note{background:#f3f0e4;border-radius:16px;padding:14px 16px;font-size:14px}
+.next-step{background:var(--soft);border-radius:18px;padding:16px;font-size:15px}
+.next-step b{color:var(--forest)}
+.fine-print{font-size:12px;color:var(--muted)}
+/* offer */
+.offer{background:linear-gradient(170deg,var(--forest) 0%,#284a5e 100%);color:#fff;border-radius:26px;padding:24px 20px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.offer::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(168,198,218,.45),transparent 70%)}
+.offer>*{position:relative}
+.offer-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.ny{background:#fff;color:var(--forest);font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:5px 11px}
+.cd{color:rgba(255,255,255,.8)}
+.offer h3{color:#fff;font-size:28px}
+.offer-line{color:rgba(255,255,255,.85)}
+.price{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.price strong{font-family:var(--serif);font-size:64px;line-height:.9;font-weight:600}
+.price s{opacity:.6;font-size:20px}
+.save{background:var(--blue);border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px}
+.incl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:14.5px}
+.incl li{display:flex;gap:10px}.incl li::before{content:"✓";color:var(--sky1);font-weight:800}
+.offer .btn{background:#fff;color:var(--forest)}
+.offer .btn:hover{background:var(--sky2)}
+.fine{font-size:12px;color:rgba(255,255,255,.7);text-align:center}
+.foot{font-size:12px;color:var(--forest);text-align:center;padding:8px 14px;background:rgba(255,255,255,.7);border-radius:14px;align-self:center}
+html{background:var(--mist)}
+
+.hero-h{font-size:clamp(34px,9.4vw,52px);line-height:1.04}
+.hero-h em{display:block;margin-top:4px}
+.stamp{display:inline-block;margin-top:12px;font-family:var(--sans);font-style:normal;font-weight:800;font-size:.46em;letter-spacing:.02em;text-transform:uppercase;color:#fff;background:var(--blue);border-radius:999px;padding:.38em .9em .42em;transform:rotate(-3deg);box-shadow:0 10px 22px -12px rgba(63,111,147,.9)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+h1[tabindex]:focus,h2[tabindex]:focus{outline:none}</style>
+<style>html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1392638372396376');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1392638372396376&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+</head>
+<body>
+<div class="mountains" aria-hidden="true"><svg viewBox="0 0 1000 300" preserveAspectRatio="none">
+<polygon fill="#9fbccd" opacity=".75" points="0,190 90,140 170,175 260,110 350,160 430,122 520,170 610,100 700,150 790,115 880,160 1000,120 1000,300 0,300"/>
+<polygon fill="#5d7f6c" points="0,232 120,172 220,215 320,160 420,222 540,176 650,230 760,182 860,226 1000,186 1000,300 0,300"/>
+<polygon fill="#1d3328" points="0,272 150,238 280,262 420,230 560,268 700,242 840,266 1000,240 1000,300 0,300"/>
+</svg></div>
+<div class="wrap">
+  <div class="brand"><b>Оля Євміна</b><span>дієтолог-трихолог</span></div>
+  <main class="card" id="app" aria-live="polite"></main>
+  <p class="foot">Тест не є діагнозом і не замінює консультацію лікаря. Аналізи призначає і трактує лікар.</p>
+</div>
+<script>
+
+/* === Налаштування (міняти тут) === */
+const CHECKOUT_URL = "https://buy.stripe.com/cNi7sMbSwbtMaobcU18EM07"; // ⚠️ замінити на посилання Stripe на $5
+const PRICE = 5, OLD_PRICE = 60, CURRENCY = "USD";
+const DEADLINE = "2026-12-31T23:59:59";  // кінець новорічної знижки
+/* ================================= */
+
+const app=document.getElementById("app");
+const fired=new Set();
+function px(type,name,params){ if(fired.has(name)) return; fired.add(name); try{ if(window.fbq) fbq(type,name,params||{}); }catch(e){} }
+function plural(n,a,b,c){ n=Math.abs(n)%100; const n1=n%10; if(n>10&&n<20) return c; if(n1>1&&n1<5) return b; if(n1===1) return a; return c; }
+function focusTitle(){ const h=app.querySelector("h1,h2"); if(h){ h.setAttribute("tabindex","-1"); try{h.focus({preventScroll:true});}catch(e){} } window.scrollTo(0,0); }
+function offerHTML(line){
+  return `<section class="offer">
+    <div class="offer-top"><span class="ny">❄ Знижка до Нового року</span><span class="cd" id="cd"></span></div>
+    <h3>Інтенсив «Розкішне волосся»</h3>
+    <p class="offer-line">${line}</p>
+    <div class="price"><strong>$${PRICE}</strong><s>$${OLD_PRICE}</s><span class="save">−${Math.round((1-PRICE/OLD_PRICE)*100)}%</span></div>
+    <ul class="incl">
+      <li>7 відеоуроків у Telegram-боті</li>
+      <li>Які аналізи здати і як їх читати</li>
+      <li>План харчування, рецепти, смузі, суперфуди</li>
+      <li>Як обирати добавки та догляд</li>
+      <li>Безкоштовний додаток: завантажте аналізи за кілька хвилин</li>
+      <li>Доступ до матеріалів 60 днів</li>
+    </ul>
+    <a class="btn buy" id="buy" href="${CHECKOUT_URL}">Забрати за $${PRICE}</a>
+    <p class="fine">Після оплати уроки приходять у Telegram-бот · 14 днів на повернення коштів</p>
+  </section>`;
+}
+function startCountdown(){
+  const el=document.getElementById("cd"); if(!el) return; const end=new Date(DEADLINE).getTime();
+  function tick(){ let s=Math.max(0,Math.floor((end-Date.now())/1000)); const d=Math.floor(s/86400); s%=86400; const h=Math.floor(s/3600); const m=Math.floor(s%3600/60);
+    el.textContent= end<=Date.now() ? "Знижка завершилась" : `ще ${d} ${plural(d,"день","дні","днів")} ${h} год ${m} хв`; }
+  tick(); setInterval(tick,30000);
+}
+function bindBuy(category,profile){
+  const a=document.getElementById("buy"); if(!a) return;
+  const url=CHECKOUT_URL+(CHECKOUT_URL.indexOf("?")<0?"?":"&")+"utm_source="+category+"&utm_content="+encodeURIComponent(profile)+"&client_reference_id="+category+"_"+encodeURIComponent(profile);
+  a.href=url;
+  a.addEventListener("click",function(e){ e.preventDefault();
+    try{ if(window.fbq) fbq("track","InitiateCheckout",{value:PRICE,currency:CURRENCY,content_name:"Інтенсив «Розкішне волосся»",content_category:category,num_items:1,profile:profile}); }catch(err){}
+    setTimeout(function(){ window.location.href=url; },350); });
+  startCountdown();
+}
+
+const P="QA", CATEGORY="quiz_analyses";
+const T={
+  zak:{n:"Загальний аналіз крові",r:"Базовий показник: чи немає анемії і як почувається кров загалом."},
+  fer:{n:"Феритин",r:"Показує запаси заліза. Падає раніше за гемоглобін і найчастіше стоїть за випадінням."},
+  vitd:{n:"Вітамін D (25-OH)",r:"Дефіцит дуже поширений, особливо взимку, і впливає на цикл росту волосся."},
+  tsh:{n:"ТТГ і вільний Т4",r:"Щитовидна залоза задає темп росту волосся. Навіть пограничні показники відбиваються на густоті."},
+  atpo:{n:"Антитіла до ТПО",r:"Допомагають виявити автоімунний тиреоїдит (АІТ), навіть коли ТТГ ще в нормі."},
+  b12:{n:"Вітамін B12",r:"Потрібен для поділу клітин фолікула. Дефіцит частіший, якщо мало м'яса й риби."},
+  fol:{n:"Фолієва кислота",r:"Працює в парі з B12; запаси часто виснажуються після вагітності й ГВ."},
+  zn:{n:"Цинк",r:"Бере участь у побудові волосся; брак проявляється ламкістю волосся й нігтів."},
+  prot:{n:"Загальний білок",r:"Волосся на 90% складається з білка. Показник важливий, якщо раціон бідний на білок або часті дієти."}
+};
+const Q=[
+ {t:"Що турбує <em>найбільше?</em>",o:[
+   {t:"Волосся сильно випадає",w:{fer:1}},
+   {t:"Стало тонким, хвіст рідшає",w:{fer:1,tsh:1}},
+   {t:"Ламається, не можу відростити довжину",w:{zn:1,prot:1}},
+   {t:"Все разом",w:{fer:1,tsh:1,zn:1}}]},
+ {t:"Як давно <em>це триває?</em>",o:[
+   {t:"Менше 3 місяців",w:{},f:["fresh"]},
+   {t:"Від 3 місяців до року",w:{fer:1}},
+   {t:"Більше року",w:{fer:1,tsh:1}}]},
+ {t:"Що з цього <em>про вас?</em>",hint:"Можна обрати кілька",multi:true,o:[
+   {t:"Постійна втома й сонливість",w:{fer:1,b12:1,tsh:1}},
+   {t:"Задишка на сходах, запаморочення",w:{zak:1,fer:2}},
+   {t:"Мерзнуть руки й ноги",w:{tsh:2,fer:1}},
+   {t:"Сухість шкіри, набряки",w:{tsh:2}},
+   {t:"Ламкі нігті",w:{fer:1,zn:1}},
+   {t:"Нічого з цього",w:{},x:true}]},
+ {t:"Як ви <em>харчуєтесь?</em>",o:[
+   {t:"М'ясо, рибу, яйця їм регулярно",w:{}},
+   {t:"М'ясо рідко або я вегетаріанка",w:{b12:2,fer:2,zn:1,prot:1}},
+   {t:"Часто сиджу на дієтах",w:{prot:2,fer:1,zn:1}},
+   {t:"Багато кави й перекусів, мало білка",w:{prot:1,fer:1}}]},
+ {t:"Цикл і <em>гормональні зміни</em>",o:[
+   {t:"Регулярний цикл, нічого особливого",w:{}},
+   {t:"Рясні місячні",w:{fer:2,zak:1}},
+   {t:"Пологи або ГВ за останні 1,5 року",w:{fer:2,fol:2,vitd:1,tsh:1}},
+   {t:"Менопауза",w:{tsh:1,vitd:1}}]},
+ {t:"Щитовидна <em>залоза</em>",o:[
+   {t:"Є діагноз: АІТ, гіпотиреоз чи гіпертиреоз",w:{tsh:2,atpo:2}},
+   {t:"У родині є проблеми зі щитовидкою",w:{tsh:1,atpo:1}},
+   {t:"Ніколи не перевіряла",w:{tsh:1}},
+   {t:"Перевіряла нещодавно, все добре",w:{}}]},
+ {t:"Чи приймаєте <em>вітамін D?</em>",o:[
+   {t:"Ні",w:{vitd:2}},
+   {t:"Так, дозу обирала сама",w:{vitd:1}},
+   {t:"Так, за результатом аналізу",w:{}}]},
+ {t:"Біотин або <em>«вітаміни для волосся»?</em>",o:[
+   {t:"Так, приймаю зараз",w:{},f:["biotin"]},
+   {t:"Приймала раніше",w:{}},
+   {t:"Ні",w:{}}]},
+ {t:"Чи здавали аналізи <em>саме під волосся?</em>",o:[
+   {t:"Ні, ніколи",w:{},f:["nolabs"]},
+   {t:"Так, сказали «все в нормі»",w:{},f:["normal"]},
+   {t:"Так, знайшли дефіцит",w:{fer:1},f:["def"]}]}
+];
+function progressHTML(s,n){
+  let r="";
+  for(let i=0;i<n;i++){ r+=`<span class="stop ${i<s?"done":i===s?"now":""}"></span>`; if(i<n-1) r+=`<span class="leg ${i<s?"done":""}"></span>`; }
+  return `<div class="route-wrap"><div class="route-label"><span>Зупинка ${s+1} з ${n}</span><span>маршрут до аналізів</span></div><div class="route" aria-hidden="true">${r}</div></div>`;
+}
+function intro(){
+  app.innerHTML=`<span class="eyebrow">Квіз · 2 хвилини</span>
+  <h1 class="hero-h">Які аналізи здати саме тобі, <em>щоб зупинити випадіння волосся</em> <span class="stamp">за 3 місяці</span></h1>
+  <p class="lead">Відповідай на 9 питань і отримай свій список аналізів для волосся: що здати першочергово і навіщо кожен показник.</p>
+  <div class="facts"><div class="fact"><b>9</b>питань</div><div class="fact"><b>1</b>особистий список</div><div class="fact"><b>✓</b>пояснення до кожного</div></div>
+  <button class="btn" id="go" type="button">Скласти мій список</button>
+  <p class="expert">Квіз складено за методикою Олі Євміної, дієтолога-трихолога з вищою європейською медичною освітою.</p>`;
+  document.getElementById("go").onclick=()=>{ px("trackCustom",P+"_Start"); step=0; render(); };
+}
+function showResult(){
+  const {w,flags}=collect();
+  ["zak","fer","vitd"].forEach(k=>w[k]=(w[k]||0)+1);
+  const keys=Object.keys(T).filter(k=>(w[k]||0)>=1).sort((a,b)=>w[b]-w[a]);
+  const top=keys.filter(k=>w[k]>=3).slice(0,4);
+  px("trackCustom",P+"_Result",{tests:keys.length});
+  const notes=[];
+  if(flags.has("normal")) notes.push("«В нормі» за референсом лабораторії ще не означає норму для волосся. Для фолікулів показники оцінюють за функціональними оптимумами, і вони вищі.");
+  if(flags.has("biotin")) notes.push("Великі дози біотину спотворюють результати деяких аналізів, зокрема на щитовидку. Перед здачею крові його зазвичай припиняють за кілька днів. Уточніть це з лікарем.");
+  if(flags.has("nolabs")) notes.push("Ви ще не здавали аналізи під волосся. Так приходить майже половина учасниць: без аналізів легко лікувати не ту причину.");
+  if(flags.has("fresh")) notes.push("Випадіння, що почалося нещодавно, часто пов'язане зі стресом чи хворобою 2–3 місяці тому. Аналізи допоможуть зрозуміти, чи вистачає тілу ресурсів, щоб волосся відновилося.");
+  app.innerHTML=`<span class="eyebrow">Твій результат</span>
+  <h2>Твій маршрут <em>аналізів</em></h2>
+  <p class="lead">${keys.length} ${plural(keys.length,"показник","показники","показників")}, які варто перевірити саме тобі. Перші в списку — першочергові за твоїми відповідями.</p>
+  <ol class="tests">${keys.map(k=>`<li class="test ${top.includes(k)?"top":""}"><div><b>${T[k].n}${top.includes(k)?'<span class="tag">першочергово</span>':""}</b><p>${T[k].r}</p></div></li>`).join("")}</ol>
+  ${notes.map(n=>`<p class="note">${n}</p>`).join("")}
+  <div class="next-step"><b>Що далі.</b> Здати аналізи — половина справи. На інтенсиві Оля показує, як їх читати саме для волосся, які оптимуми важливі і що змінити в харчуванні й добавках за результатами.</div>
+  ${offerHTML("Твій список аналізів уже є. Тепер дізнайся, як прочитати результати й що з ними робити.")}
+  <button class="btn ghost" id="again" type="button">Пройти ще раз</button>
+  <p class="fine-print">Список має освітній характер. Аналізи призначає і трактує лікар.</p>`;
+  bindBuy(CATEGORY,top.join("-")||"base");
+  document.getElementById("again").onclick=()=>{ ans.forEach(a=>a.clear()); step=-1; render(); };
+}
+
+let step=-1; const ans=Q.map(()=>new Set());
+function render(){ if(step<0) intro(); else if(step>=Q.length) showResult(); else question(); focusTitle(); }
+function question(){
+  const q=Q[step], sel=ans[step];
+  px("trackCustom",P+"_Q"+(step+1),{question:step+1});
+  app.innerHTML=`${progressHTML(step,Q.length)}
+  <h2 class="q">${q.t}</h2>${q.hint?`<p class="hint">${q.hint}</p>`:""}
+  <div class="opts">${q.o.map((o,i)=>`<button type="button" id="o${step}_${i}" class="opt ${q.multi?"multi":""}" aria-pressed="${sel.has(i)}" data-i="${i}"><span class="mark" aria-hidden="true"></span><span>${o.t}</span></button>`).join("")}</div>
+  <div class="nav"><button type="button" class="btn ghost" id="back">Назад</button><button type="button" class="btn" id="next" ${sel.size?"":"disabled"}>Далі</button></div>`;
+  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    if(q.multi){
+      if(sel.has(i)) sel.delete(i); else { if(q.o[i].x) sel.clear(); else q.o.forEach((o,j)=>{ if(o.x) sel.delete(j); }); sel.add(i); }
+    } else { sel.clear(); sel.add(i); }
+    app.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed",sel.has(+x.dataset.i)));
+    document.getElementById("next").disabled=!sel.size;
+  });
+  document.getElementById("back").onclick=()=>{ step--; render(); };
+  document.getElementById("next").onclick=()=>{ if(sel.size){ step++; render(); } };
+}
+function collect(){
+  const w={}, flags=new Set();
+  Q.forEach((q,qi)=>ans[qi].forEach(i=>{ const o=q.o[i]; for(const k in (o.w||{})) w[k]=(w[k]||0)+o.w[k]; (o.f||[]).forEach(f=>flags.add(f)); }));
+  return {w,flags};
+}
+render();
+
+</script>
+</body>
+</html>
